@@ -1,5 +1,7 @@
 var bcrypt = require("bcrypt");
 var salt = bcrypt.genSaltSync(10);
+var passport = require("passport");
+var passportLocal = require("passport-local");
 
 module.exports = function (sequelize, DataTypes){
    var User = sequelize.define('user', {
@@ -46,37 +48,71 @@ module.exports = function (sequelize, DataTypes){
         }
     }).success(function(user) {
       success({message: 'Account created, please log in now'});
-    });
-  }
-},
-      authorize: function(username, password, err, success) {
-     // find a user in the DB
-      User.find({
-          where: {
-            username: username
-          }
-        })
-        // when that's done, 
-        .done(function(error,user){
-          if(error){
-            console.log(error);
-            err({message: "Oops! Something went wrong"});
-          }
-          else if (user === null){
-            err({message: "Username does not exist"});
-          }
-          else if ((User.comparePass(password, user.password)) === true){
-            success();
-          }
-          else {
-            err({message: "Invalid password"});
-          }
         });
-      }  
-    
-      } // close classMethods
-    } //close classMethods outer 
+      }
+    },
+  } // close classMethods
+} //close classMethods outer 
+); // close define user
+     
+    passport.use(new passportLocal.Strategy({
+      usernameField: 'username',
+      passwordField: 'password',
+      passReqToCallback: true
+    }, 
+    function(req, username, password, done) {
+      // find a user in the DB
+      User.find({
+        where: {
+          username: username
+        }
+      })
+      
+      // done(err) // when we screw up (db issues)
+      // done(null, false) // when we do right, but user does wrong
+      // done(null, user) // when we do right and user does right! Woohoo!
+      
+      //when that's done....
+      .done(function(error, user){
+        if(error){
+          console.log(error)
+          return done(err, req.flash('loginMessage', 'Oops! Something went wrong...'))
+        }
+        if (user === null) {
+          return done(null, false, req.flash('loginMessage', 'Username does not exist'))
+        }
+        if((User.comparePass(password, user.password)) !== true) {
+          return done(null, false, req.flash('loginMessage', 'Invalid password'))
+        }
+        done(null,user);
+      });
+    }));
 
-  ); // close define user
+     //  authorize: function(username, password, err, success) {
+     // // find a user in the DB
+     //  User.find({
+     //      where: {
+     //        username: username
+     //      }
+     //    })
+     //    // when that's done, 
+     //    .done(function(error,user){
+     //      if(error){
+     //        console.log(error);
+     //        err({message: "Oops! Something went wrong"});
+     //      }
+     //      else if (user === null){
+     //        err({message: "Username does not exist"});
+     //      }
+     //      else if ((User.comparePass(password, user.password)) === true){
+     //        success();
+     //      }
+     //      else {
+     //        err({message: "Invalid password"});
+     //      }
+     //    });
+     //  }  
+    
+    
   return User;
 }; // close User function

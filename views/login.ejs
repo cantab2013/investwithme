@@ -7,13 +7,11 @@
 <body>
 	<h1>Login </h1>
 	<h2 style = "color:red">
-		<% if(message) {%>
-		<%= message %>
-		<% }%>
+		
 	</h2>
 		<form action="/login" method = "post">
 			<p>
-				<label for="user">Username:</label> <input type="text" name="username" id="user" autofocus value =<%= username %>>
+				<label for="user">Username:</label> <input type="text" name="username" id="user" autofocus>
 			</p>
 			<p>
 				<label for="pass">Password:</label> <input type="password" name="password" id="pass">

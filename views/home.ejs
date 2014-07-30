@@ -5,7 +5,16 @@
 	<title>Document</title>
 </head>
 <body>
+	<%  if (!isAuthenticated){ %>
+		<a href="/login">You must be logged in to view this page</a>
+	<%  } else { %>
+	
+	<h1>Hello, <%= user.username %>	- welcome to our website!</h1>
+	
+	<a href="/logout">Log out here</a>
+
 	<h1>You're logged in!</h1>
 <a href="/">Go back to landing page</a>
+<%  }%>
 </body>
 </html>
