@@ -23,8 +23,6 @@ Object.keys(db).forEach(function(modelName) {
   }
 })
 
-db.user.create({username: 'foofoo', password: 'booboo'})
-
 module.exports = lodash.extend({
   sequelize: sequelize,
   Sequelize: Sequelize

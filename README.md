@@ -5,4 +5,7 @@ node-authorization
 
 node app.js or nodemon to get started
 make sure you have a users_dev database created
-- (createdb users_dev)
+in terminal:
+
+- createdb users_dev
+- sqlize db:migrate

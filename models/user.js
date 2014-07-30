@@ -5,17 +5,16 @@ module.exports = function (sequelize, DataTypes){
    var User = sequelize.define('user', {
      username: { 
         type: DataTypes.STRING, 
+        allowNull: false,
         unique: true, 
         validate: {
-          notNull: false,
           len: [6, 30],
           }
     },
     password: {
         type:DataTypes.STRING,
         validate: {
-          notNull: false,
-          notEmpty: true
+          notEmpty: true,
         }
       }
     },
@@ -28,29 +27,28 @@ module.exports = function (sequelize, DataTypes){
     }, 
       comparePass: function(userpass, dbpass) {
       // don't salt twice when you compare....watch out for this
-        return bcrypt.compareSync((userpass), dbpass);  
+        return bcrypt.compareSync(userpass, dbpass);  
     },
-      createNewUser:function(username, password, err, success ) {
-        if(password.length < 6) {
-          err({message: "Password should be more than six characters"});
+      createNewUser: function(username, password, err, success ) {
+  if(password.length < 6) {
+    err({message: "Password should be more than six characters"});
+  }
+  else{
+  User.create({
+      username: username,
+      password: User.encryptPass(password)
+    }).error(function(error) {
+      if(error.username){
+        err({message: 'Your username should be at least 6 characters long', username: username});
+      }
+      else{
+        err({message: 'An account with that username already exists', username: username});
         }
-        else{
-        User.create({
-            username: username,
-            password: User.encryptPass(password)
-          }).error(function(error) {
-            console.log(error);
-            if(error.username){
-              err({message: 'Your username should be at least 6 characters long', username: username});
-            }
-            else{
-              err({message: 'An account with that username already exists', username: username});
-              }
-          }).success(function(user) {
-            success({message: 'Account created, please log in now'});
-          });
-        }
-      },
+    }).success(function(user) {
+      success({message: 'Account created, please log in now'});
+    });
+  }
+},
       authorize: function(username, password, err, success) {
      // find a user in the DB
       User.find({
@@ -82,10 +80,3 @@ module.exports = function (sequelize, DataTypes){
   ); // close define user
   return User;
 }; // close User function
-
-
-
-  
-
-
-
