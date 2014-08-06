@@ -4,55 +4,68 @@ var express = require("express"),
   passportLocal = require("passport-local"),
   cookieParser = require("cookie-parser"),
   cookieSession = require("cookie-session"),
-  flash = require("connect-flash"),
-  app = express(),
-  db = require("./models/index");
+  db = require("./models/index"),
+  flash = require('connect-flash'),
+  app = express();
 
+// Middleware for ejs, grabbing HTML and including static files
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded({extended: true}) ); 
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(express.static(__dirname + '/public'));
 
-app.use(cookieSession({
+
+// we are going to create a cookie that will store our session data
+// ideally we want this secret to be a string of random numbers 
+// we use the secret to parse the data from the cookie
+// This is cookie-based session middleware so technically this creates a session
+// This session can expire and doesn't live on our server
+
+// The session middleware implements generic session functionality with in-memory storage by default. It allows you to specify other storage formats, though.
+// The cookieSession middleware, on the other hand, implements cookie-backed storage (that is, the entire session is serialized to the cookie, rather than just a session key. It should really only be used when session data is going to stay relatively small.
+// And, as I understand, it (cookie-session) should only be used when session data isn't sensitive. It is assumed that a user could inspect the contents of the session, but the middleware will detect when the data has been modified.
+app.use(cookieSession( {
   secret: 'thisismysecretkey',
-  name: 'cookie created by Elie',
-  //maxage is in milliseconds
+  name: 'session with cookie data',
+  // this is in milliseconds
   maxage: 360000
-}));
+  })
+);
 
+// get passport started
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-// prepare our serialze functions
-passport.serializeUser(function(user,done){
-  console.log("SERIALIZED JUST RAN");
+// prepare our serialize functions
+passport.serializeUser(function(user, done){
+  console.log("SERIALIZED JUST RAN!");
   done(null, user.id);
 });
 
 passport.deserializeUser(function(id, done){
-  console.log("DESERIALIZED JUST RAN");
+  console.log("DESERIALIZED JUST RAN!");
   db.user.find({
-    where: {
-      id: id
-    }
-  }).done(function(error, user){
-    done(error, user);
-  });
+      where: {
+        id: id
+      }
+    })
+    .done(function(error,user){ 
+      done(error, user);
+    });
 });
-
-
 app.get('/', function(req,res){
   // check if the user is logged in
   if(!req.user) {
     res.render("index");
   }
-  else {
+  else{
     res.redirect('/home');
   }
 });
 
 app.get('/signup', function(req,res){
   if(!req.user) {
-    res.render("signup");  
+    res.render("signup", { username: ""});
   }
   else{
     res.redirect('/home');
@@ -60,24 +73,27 @@ app.get('/signup', function(req,res){
 });
 
 app.get('/login', function(req,res){
+  // check if the user is logged in
   if(!req.user) {
-    res.render("login");  
+    res.render("login", {message: req.flash('loginMessage'), username: ""});
   }
-  else {
-    res.redirect('/home')
+  else{
+    res.redirect('/home');
   }
 });
 
 app.get('/home', function(req,res){
   res.render("home", {
-    isAuthenticated: req.isAuthenticated(),
-    user: req.user
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
   });
 });
 
 // on submit, create a new users using form values
-app.post('/create', function(req,res){	
-   
+app.post('/submit', function(req,res){  
+  
   db.user.createNewUser(req.body.username, req.body.password, 
   function(err){
     res.render("signup", {message: err.message, username: req.body.username});
@@ -87,20 +103,80 @@ app.post('/create', function(req,res){
   });
 });
 
-// authenticate users when logging in
+// authenticate users when logging in - no need for req,res passport does this for us
 app.post('/login', passport.authenticate('local', {
-  successRedirect: '/home',
-  failureRedirect: '/login',
+  successRedirect: '/home', 
+  failureRedirect: '/login', 
   failureFlash: true
 }));
 
 app.get('/logout', function(req,res){
+  //req.logout added by passport - delete the user id/session
   req.logout();
   res.redirect('/');
 });
 
-app.listen(3000, function(){
-  console.log("get this party started on port 3000");  
+app.get('/adminSummary', function(req,res){
+  res.render("adminSummary", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+app.get('/adminDetails', function(req,res){
+  res.render("adminDetails", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+app.get('/adminInput', function(req,res){
+  res.render("adminInput", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+app.get('/adminOutput', function(req,res){
+  res.render("adminOutput", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+app.get('/dashboard', function(req,res){
+  res.render("userDashboard", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+app.get('/ledger', function(req,res){
+  res.render("userLedger", {
+  //runs a function to see if the user is authenticated - returns true or false
+  isAuthenticated: req.isAuthenticated(),
+  //this is our data from the DB which we get from deserializing
+  user: req.user
+  });
+});
+
+// catch-all for 404 errors 
+app.get('*', function(req,res){
+  res.status(404);
+  res.render('404');
 });
 
 
+app.listen(3000, function(){
+  console.log("get this party started on port 3000");  
+});
