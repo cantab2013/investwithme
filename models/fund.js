@@ -23,4 +23,4 @@ with attributes like `body` and `title`
    return fund;
 }
 
-module.exports = fund;
+module.exports = Fund;

@@ -6,7 +6,7 @@ function Ledger(sequelize, DataTypes){
 create a model like `post`
 with attributes like `body` and `title`
 */
-    var Ledger = sequelize.define('ledger',{
+    var ledger = sequelize.define('ledger',{
       curBalance: DataTypes.FLOAT,
       dailyRate: DataTypes.FLOAT,
       cumEarning: DataTypes.FLOAT,
@@ -16,11 +16,11 @@ with attributes like `body` and `title`
       {
         classMethods: {
           associate: function(db) {
-            Ledger.belongsTo(db.user);
+            ledger.belongsTo(db.user);
           }
         }
       })
-   return Ledger;
+   return ledger;
 }
 
 module.exports = Ledger;
