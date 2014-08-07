@@ -27,7 +27,7 @@ app.use(cookieSession( {
   secret: 'thisismysecretkey',
   name: 'session with cookie data',
   // this is in milliseconds
-  maxage: 360000
+  maxage: 3600000
   })
 );
 
@@ -49,7 +49,7 @@ passport.deserializeUser(function(id, done){
         id: id
       }
     })
-    .done(function(error,user){ 
+    .complete(function(error,user){ 
       done(error, user);
     });
 });
@@ -152,8 +152,43 @@ app.get('/adminOutput', function(req,res){
   });
 });
 
+
 app.get('/dashboard', function(req,res){
-  res.render("userDashboard", {
+  db.user.find({
+    where:
+    {
+      id: req.user.id
+    }
+  }).success(function(data){
+    console.log("THIS IS OUR LEDGER DATA!")
+    console.log(data)
+    res.render("userDashboard", {
+    //runs a function to see if the user is authenticated - returns true or false
+    isAuthenticated: req.isAuthenticated(),
+    //this is our data from the DB which we get from deserializing
+    user: req.user,
+    data: data
+    });
+  });
+});
+
+
+app.get('/ledger', function(req,res){
+  db.ledger.find({where:
+    {userID: req.user.id}
+  }).success(function(data){
+    res.render("userLedger", {
+    //runs a function to see if the user is authenticated - returns true or false
+    isAuthenticated: req.isAuthenticated(),
+    //this is our data from the DB which we get from deserializing
+    user: req.user,
+    data: data
+    });
+  });
+});
+
+app.get('/add', function(req,res){
+  res.render("add", {
   //runs a function to see if the user is authenticated - returns true or false
   isAuthenticated: req.isAuthenticated(),
   //this is our data from the DB which we get from deserializing
@@ -161,8 +196,36 @@ app.get('/dashboard', function(req,res){
   });
 });
 
-app.get('/ledger', function(req,res){
-  res.render("userLedger", {
+app.post('/add', function(req,res){  
+
+  db.ledger.findOrCreate(
+    {userID: req.user.id}, 
+    {bodBalance: 0},
+    {dailyRate: req.user.dailyRate})
+  .success(function (ledger, created){
+    if(created) {
+      // if this user never had any ledger
+      ledger.dailyLedger = [req.body.amount];
+      db.user.find(req.user.id).success(function(user){
+        user.updateAttributes({ curBalance: req.body.amount})
+        .success(function() {});
+      });      
+    }
+    else {
+      // if has ledger, need to match date of today's date 
+      // then do the following push:
+      // ledger.dailyLedger.push(req.body.amount);      
+       
+    };
+  });
+
+  res.redirect('/dashboard');
+
+});
+
+
+app.get('/subtract', function(req,res){
+  res.render("subtract", {
   //runs a function to see if the user is authenticated - returns true or false
   isAuthenticated: req.isAuthenticated(),
   //this is our data from the DB which we get from deserializing

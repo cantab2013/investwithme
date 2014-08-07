@@ -10,7 +10,7 @@ module.exports = {
       },
       createdAt: DataTypes.DATE,
       updatedAt: DataTypes.DATE,
-      curBalance: {
+      bodBalance: {
         type: DataTypes.FLOAT,
         allowNull: false
       },
@@ -18,13 +18,8 @@ module.exports = {
         type: DataTypes.FLOAT,
         allowNull: false
       },
-      cumEarning: {
-        type: DataTypes.FLOAT,
-        allowNull: false
-      },
       dailyLedger: {
-        type: DataTypes.ARRAY(DataTypes.FLOAT),
-        allowNull: false
+        type: DataTypes.ARRAY(DataTypes.FLOAT)
       },
       userID: {
         type: DataTypes.INTEGER,

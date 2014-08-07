@@ -10,25 +10,19 @@
 			
 <!-- include partials/counters.ejs -->
 
-  <div class="row placeholders">
-       <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="#" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
-    </div>
+  <h1 class="page-header">Account Ledger <a id="dateHeader">(for user xxxx)</a></h1>
+
+  <div>
+    <ul>
+      <li>Cumulative Earnings: $<%= data.dataValues.cumEarning %></li>
+      <li>Current Balance: $<%= data.dataValues.curBalance %></li>
+    </ul>
   </div>
 
-  <div class="row placeholders">
-       <div class="col-xs-6 col-sm-3 placeholder">
-      <img data-src="#" class="img-responsive" alt="Generic placeholder thumbnail">
-      <h4>Label</h4>
-      <span class="text-muted">Something else</span>
-    </div>
-  </div>
-
-  <button type="button" class="btn btn-primary btn-lg">Add Value</button>
-  <button type="button" class="btn btn-danger btn-lg">Withdraw Value</button>
-
+  <button onclick="window.location.href='/add'" class="btn btn-primary btn-lg">Add Value</button>
+  <button onclick="window.location.href='/subtract'" class="btn btn-danger btn-lg">Withdraw Value</button>
+ 
 	<%  }%>
+
 <% include partials/footer.ejs%>
 

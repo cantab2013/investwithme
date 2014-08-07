@@ -15,9 +15,9 @@ with attributes like `body` and `title`
     },
       {
         classMethods: {
-          associate: function(db) {
-            fund.belongsTo(db.user);
-          }
+          // associate: function(db) {
+          //   fund.belongsTo(db.user);
+          // }
         }
       })
    return fund;

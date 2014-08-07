@@ -1,0 +1,26 @@
+<% include partials/userHeader.ejs%>
+	
+<!-- remove false to activate-->	
+ <%  if (!isAuthenticated && false){ %>
+		<br>
+		<div class="alert alert-warning">
+		<a href="/login">You must be logged in to view this page</a>
+		</div>
+	<%  } else {%>
+			
+<!-- include partials/counters.ejs -->
+
+  <h1 class="page-header">Add Value</h1>
+
+  <div>
+ 		<form action="/add" method="post">
+ 			<label for="amount">Enter Amount to Add to Account:</label><br><br>
+ 			US$ <input type="text" name="amount" id="amount" placeholder="Enter amount" autofocus>
+ 			<button class="btn btn-primary">Submit</button>
+ 		</form>
+  </div>
+
+ 	<%  }%>
+
+<% include partials/footer.ejs%>
+
