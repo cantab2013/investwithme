@@ -6,7 +6,118 @@ var express = require("express"),
   cookieSession = require("cookie-session"),
   db = require("./models/index"),
   flash = require('connect-flash'),
+  yahooFinance = require('yahoo-finance'),
+  numeral = require('numeral'),
   app = express();
+
+// Helper function
+
+// takes all ledgers of a user id (stored as array)
+// returns an object of arrays storing current value of portfoilo 
+// valued at the latest closing date
+
+var getCurPortfolio = function (ledgers, arr) {
+  var obj = {ticker: [], quantity: [], price: [], cost: []}, arr = [];
+
+  ledgers.forEach(function(ledger) {
+    if (obj.ticker.indexOf(ledger.dataValues.ticker) === -1) {
+      obj.ticker.push(ledger.dataValues.ticker);
+      obj.quantity.push(ledger.dataValues.quantity);
+      obj.cost.push(ledger.dataValues.quantity*ledger.dataValues.price);
+    } else {
+      obj.quantity[obj.ticker.indexOf(ledger.dataValues.ticker)] += ledger.dataValues.quantity;   
+      obj.cost[obj.ticker.indexOf(ledger.dataValues.ticker)] += ledger.dataValues.quantity*ledger.dataValues.price;
+    };
+  });
+
+  // for (var i = 0; i < obj.ticker.length; i+=1) {
+  //   getClosingPrice (obj.ticker[i], function(err, quotes, url, symbol) {
+  //     if (!err) {
+  //       obj.price.push(quotes[0].close); 
+  //       console.log("MYPRICE", obj, i);
+  //     } else {
+  //       console.log("API call error");
+  //     };
+  //   });    
+  // };
+
+  yahooFinance.snapshot({
+      symbols: obj.ticker,
+      fields: ['d1', 'l1']
+    }, function (err, data, url, fields) {
+  
+   for (var i = 0; i < obj.ticker.length; i+=1) {
+  
+        arr.push(data[obj.ticker[i]].lastTradePriceOnly);
+  };  
+       console.log("WOW", arr);
+ 
+      });
+   
+  
+
+  console.log("PORTFOLIO OBJECT created", obj, arr);
+
+  return obj;
+};
+
+  // getClosingPrice (obj.ticker, function(err, results) {
+  //    console.log("OBJECT FINAL", results);
+
+  //   if (!err) {
+  //     for (var i = 0; i < obj.ticker.length; i+=1) {
+  //       obj.price.push(results[i].quotes[0].close);
+  //     };
+  //     console.log("OBJECT FINAL", obj);
+  //     return obj;
+  //   } else {
+  //     console.log("API call error");
+  //   };
+  // });     
+
+
+var getClosingPrice = function (ticker, callback) {
+
+  var today = new Date();
+  var dd = today.getDate();
+  var mm = today.getMonth()+1; //January is 0!
+  var yyyy = today.getFullYear();
+  var closeDate;
+
+  if (today.getHours() < 18) {
+    dd -= 1;  // before market closing (18:00 cut off assumption) use prev closing date
+  };
+
+  if(dd<10) {
+      dd='0'+dd;
+  }; 
+
+  if(mm<10) {
+      mm='0'+mm;
+  };
+
+  closeDate = yyyy + '-' + mm + '-' + dd;
+
+  yahooFinance.historical({
+    symbol: ticker,
+    from: closeDate,
+    to: closeDate,
+    period: 'd'
+    // period: 'd'  // 'd' (daily), 'w' (weekly), 'm' (monthly)
+  }, callback);
+
+// API FORMAT
+// yahooFinance.historical({
+//   symbol: 'AAPL',
+//   from: '2012-01-01',
+//   to: '2012-12-31',
+//   // period: 'd'  // 'd' (daily), 'w' (weekly), 'm' (monthly)
+// }, function (err, quotes, url, symbol) {
+//   //...
+// });
+
+};
+
 
 // Middleware for ejs, grabbing HTML and including static files
 app.set('view engine', 'ejs');
@@ -27,7 +138,8 @@ app.use(cookieSession( {
   secret: 'thisismysecretkey',
   name: 'session with cookie data',
   // this is in milliseconds
-  maxage: 3600000
+  maxage: 360000 * 1000
+  // need to reset to 360000
   })
 );
 
@@ -116,68 +228,38 @@ app.get('/logout', function(req,res){
   res.redirect('/');
 });
 
-app.get('/adminSummary', function(req,res){
-  res.render("adminSummary", {
-  //runs a function to see if the user is authenticated - returns true or false
-  isAuthenticated: req.isAuthenticated(),
-  //this is our data from the DB which we get from deserializing
-  user: req.user
-  });
-});
 
-app.get('/adminDetails', function(req,res){
-  res.render("adminDetails", {
-  //runs a function to see if the user is authenticated - returns true or false
-  isAuthenticated: req.isAuthenticated(),
-  //this is our data from the DB which we get from deserializing
-  user: req.user
-  });
-});
+app.get('/summary', function(req,res){
+  db.user.find(req.user.id)
+  .success(function(data){
 
-app.get('/adminInput', function(req,res){
-  res.render("adminInput", {
-  //runs a function to see if the user is authenticated - returns true or false
-  isAuthenticated: req.isAuthenticated(),
-  //this is our data from the DB which we get from deserializing
-  user: req.user
-  });
-});
+    var obj, arr;
 
-app.get('/adminOutput', function(req,res){
-  res.render("adminOutput", {
-  //runs a function to see if the user is authenticated - returns true or false
-  isAuthenticated: req.isAuthenticated(),
-  //this is our data from the DB which we get from deserializing
-  user: req.user
-  });
-});
+    db.ledger.findAll({where: {userId: req.user.id}})
+    .success(function(ledgers){
+      obj = getCurPortfolio(ledgers, arr);
+      console.log("INSIDE PASSING OBJECT", obj, arr);
 
-
-app.get('/dashboard', function(req,res){
-  db.user.find({
-    where:
-    {
-      id: req.user.id
-    }
-  }).success(function(data){
-    console.log("THIS IS OUR LEDGER DATA!")
-    console.log(data)
-    res.render("userDashboard", {
-    //runs a function to see if the user is authenticated - returns true or false
-    isAuthenticated: req.isAuthenticated(),
-    //this is our data from the DB which we get from deserializing
-    user: req.user,
-    data: data
+      res.render("summary", {
+      //runs a function to see if the user is authenticated - returns true or false
+      isAuthenticated: req.isAuthenticated(),
+      //this is our data from the DB which we get from deserializing
+      user: req.user,
+      data: data,
+      obj: obj,
+      arr: arr
+      });
     });
   });
 });
 
 
 app.get('/ledger', function(req,res){
-  db.ledger.find({where:
-    {userID: req.user.id}
+  db.ledger.findAll({where:
+    {userId: req.user.id}
   }).success(function(data){
-    res.render("userLedger", {
+    // res.send(data);
+    res.render("ledger", {
     //runs a function to see if the user is authenticated - returns true or false
     isAuthenticated: req.isAuthenticated(),
     //this is our data from the DB which we get from deserializing
@@ -187,45 +269,70 @@ app.get('/ledger', function(req,res){
   });
 });
 
-app.get('/add', function(req,res){
-  res.render("add", {
+app.get('/buysell', function(req,res){
+  res.render("buysell", {
   //runs a function to see if the user is authenticated - returns true or false
   isAuthenticated: req.isAuthenticated(),
   //this is our data from the DB which we get from deserializing
-  user: req.user
+  user: req.user,
+  price: "?",
+  ticker: ""
   });
 });
 
-app.post('/add', function(req,res){  
+app.post('/buysell', function(req,res){  
 
-  db.ledger.findOrCreate(
-    {userID: req.user.id}, 
-    {bodBalance: 0},
-    {dailyRate: req.user.dailyRate})
-  .success(function (ledger, created){
-    if(created) {
-      // if this user never had any ledger
-      ledger.dailyLedger = [req.body.amount];
-      db.user.find(req.user.id).success(function(user){
-        user.updateAttributes({ curBalance: req.body.amount})
-        .success(function() {});
-      });      
+  var toggle;
+
+  if (req.body.radios === "Buy") {
+    toggle = 1;
+  } else {
+    toggle = -1;
+  };
+
+  db.ledger.create({
+    ticker: req.body.ticker2,
+    quantity: (req.body.quantity * toggle),
+    price: req.body.price2,
+    userId: req.user.id
+  }, ['ticker', 'quantity', 'price', 'userId'])
+  .success(function(ledger) {
+    console.log(ledger);
+  });
+
+  // db.user.cash = req.user.cash - (req.body.quantity * req.body.price2 * toggle);
+  // db.user.save().surcess(function(){});
+  // db.user.updateAttributes
+  // db.save()
+  // .success(function(user) {
+  //   console.log(user);
+  // });
+
+  res.redirect('/summary');
+
+});
+
+app.post('/lookup', function(req,res){  
+
+  getClosingPrice(req.body.ticker, function (err, quotes, url, symbol) {
+    if(!err) {    
+
+      res.render('buysell', {
+        isAuthenticated: req.isAuthenticated(),
+        user: req.user,
+        price: quotes[0].close,
+        ticker: quotes[0].symbol
+      });
+
+    } else {
+      console.log("API call error");
     }
-    else {
-      // if has ledger, need to match date of today's date 
-      // then do the following push:
-      // ledger.dailyLedger.push(req.body.amount);      
-       
-    };
   });
-
-  res.redirect('/dashboard');
 
 });
 
-
-app.get('/subtract', function(req,res){
-  res.render("subtract", {
+app.get('/about', function(req,res){
+  res.render("about", {
   //runs a function to see if the user is authenticated - returns true or false
   isAuthenticated: req.isAuthenticated(),
   //this is our data from the DB which we get from deserializing

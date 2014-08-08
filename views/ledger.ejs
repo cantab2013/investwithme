@@ -1,0 +1,49 @@
+<% include partials/header.ejs%>
+
+  <ul class="nav nav-sidebar">
+    <li><a href="/summary">Account Summary</a></li>
+    <li><a href="/buysell">Buy/Sell</a></li>
+    <li class="active"><a href="/ledger">Ledger History</a></li>
+  </ul>
+
+</div>
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+<!-- remove false to activate-->	
+ <%  if (!isAuthenticated && false){ %>
+		<br>
+		<div class="alert alert-warning">
+		<a href="/login">You must be logged in to view this page</a>
+		</div>
+	<%  } else {%>
+	
+	<h1 class="page-header">Ledger History</h1>
+		
+   <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Ticker</th>
+          <th># of Shares Bought/(Sold)</th>
+          <th>Price per Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (var i = 0; i < data.length; i+=1) { %>
+          <tr>
+            <td><%= data[i].createdAt %></td>
+            <td><%= data[i].ticker  %></td>
+            <td><%= data[i].quantity  %></td>
+            <td><%= data[i].price  %></td>
+          </tr>
+        <% } %>
+
+      </tbody>
+    </table>
+  </div>
+
+
+	<%  }%>
+<% include partials/footer.ejs%>
+

@@ -10,7 +10,9 @@ module.exports = function (sequelize, DataTypes){
           len: [6, 30]
         }
      },
-    password: DataTypes.STRING
+    password: DataTypes.STRING,
+    cash: DataTypes.FLOAT,
+    portfolio: DataTypes.FLOAT
     },
     
   {

@@ -7,11 +7,10 @@ create a model like `post`
 with attributes like `body` and `title`
 */
     var ledger = sequelize.define('ledger',{
-      curBalance: DataTypes.FLOAT,
-      dailyRate: DataTypes.FLOAT,
-      cumEarning: DataTypes.FLOAT,
-      dailyLedger: DataTypes.ARRAY(DataTypes.FLOAT),
-      userID: DataTypes.INTEGER
+      ticker: DataTypes.STRING,
+      quantity: DataTypes.FLOAT,
+      price: DataTypes.FLOAT,
+      userId: DataTypes.INTEGER
     },
       {
         classMethods: {

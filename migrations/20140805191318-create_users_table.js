@@ -19,21 +19,13 @@ module.exports = {
         type: DataTypes.STRING,
         allowNull: false
       },
-      isAdmin: {
-      	type: DataTypes.BOOLEAN,
-      	defaultValue: false
+      cash: {
+        type: DataTypes.FLOAT,
+        defaultValue: 100000
       },
-      curBalance: {
+      portfolio: {
         type: DataTypes.FLOAT,
         defaultValue: 0
-      },
-      cumEarning: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0
-      },
-      dailyRate: {
-        type: DataTypes.FLOAT,
-        defaultValue: 0.04
       }
     })
     .complete(done);

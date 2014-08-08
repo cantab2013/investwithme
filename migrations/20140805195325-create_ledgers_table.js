@@ -10,18 +10,19 @@ module.exports = {
       },
       createdAt: DataTypes.DATE,
       updatedAt: DataTypes.DATE,
-      bodBalance: {
-        type: DataTypes.FLOAT,
+      ticker: {
+        type: DataTypes.STRING,
         allowNull: false
       },
-      dailyRate: {
+      quantity: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        defaultValue: 0
       },
-      dailyLedger: {
-        type: DataTypes.ARRAY(DataTypes.FLOAT)
+      price: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
       },
-      userID: {
+      userId: {
         type: DataTypes.INTEGER,
       	foreignKey: true,
         allowNull: false

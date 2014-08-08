@@ -1,0 +1,19 @@
+<% include partials/header.ejs%>
+<% include partials/leftNav.ejs%>
+	
+	<%  if (!isAuthenticated){ %>
+		<br>
+		<div class="alert alert-warning">
+		<a href="/login">You must be logged in to view this page</a>
+		</div>
+	<%  } else {%>
+	
+		<h1 class="page-header">About IWM</h1>
+
+	<p>We are here to help you learn to invest, <%= user.username %>! InvestWithMe is a investment simulator that allows you to see your portfolio in action. We start you off with $100,000 of pseudo money in your account. Let's see how you do!</p>
+
+	<img width="60%" src="https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSyBYOAsOyXLCg0P1McuKXAWhumBYhKqxJOuS9Q3kaZBYrFtzRq" alt="">
+	
+
+	<%  }%>
+<% include partials/footer.ejs%>

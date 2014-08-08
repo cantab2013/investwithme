@@ -1,0 +1,102 @@
+<% include partials/header.ejs%>
+
+  <ul class="nav nav-sidebar">
+    <li><a href="/summary">Account Summary</a></li>
+    <li class="active"><a href="/buysell">Buy/Sell</a></li>
+    <li><a href="/ledger">Ledger History</a></li>
+  </ul>
+
+</div>
+<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+
+
+<!-- remove false to activate-->	
+ <%  if (!isAuthenticated && false){ %>
+		<br>
+		<div class="alert alert-warning">
+		<a href="/login">You must be logged in to view this page</a>
+		</div>
+	<%  } else {%>
+			
+  <h1 class="page-header">Buy/Sell</h1>
+
+<form class="form-horizontal" action="/lookup" method="post">
+
+<div class="control-group">
+  <label class="control-label" for="ticker">For Ticker Symbol</label>
+  <div class="controls">
+    <div class="input-append">
+      <input id="ticker" name="ticker" class="input-xlarge" placeholder="Enter Ticker" type="text" value="<%= ticker %>">
+      <div class="btn-group">
+        <input type="submit" value="Lookup" class="btn btn-primary">
+      </div>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<div class="control-group">
+  <div class="controls">
+    <div class="input-append">
+      <span class="add-on">@ Current Price Per Share of <br><br>
+        <span id="price">$<%= price %></span>
+      </span>
+    </div>
+  </div>
+</div>
+
+<br>
+
+</form>
+
+<form class="form-horizontal" action="/buysell" method="post">
+
+<div class="control-group">
+  <label class="control-label" for="radios">I Want to (Choose One)</label>
+  <div class="controls">
+    <label class="radio inline" for="radios-0">
+      <input name="radios" id="radios-0" value="Buy" checked="checked" type="radio">
+      Buy
+    </label>
+    <label class="radio inline" for="radios-1">
+      <input name="radios" id="radios-1" value="Sell" type="radio">
+      Sell
+    </label>
+  </div>
+</div>
+
+<br>
+
+<!-- Appended Input-->
+<div class="control-group">
+  <label class="control-label" for="quantity">a Quantity of</label>
+  <div class="controls">
+    <div class="input-append">
+      <input id="quantity" name="quantity" class="input-xlarge" placeholder="Enter Quantity" type="text">
+      <span class="add-on">Shares</span>
+    </div>
+  </div>
+</div>
+
+<input name="ticker2" type="hidden" value="<%= ticker %>">
+<input name="price2" type="hidden" value="<%= price %>">
+
+<!-- Button (Double) -->
+<div class="control-group">
+  <label class="control-label" for="button1id"></label>
+  <div class="controls">
+    <input type="submit" id="button1id" value="Confirm" class="btn btn-success">
+    <span class="add-on"><a href="/summary">Cancel</a></span>
+<!--       <button class="btn btn-danger" onclick="window.location.href='/summary'">Cancel</button> -->
+  </div>
+</div>
+
+
+</form>
+
+
+ 	<%  }%>
+
+<% include partials/footer.ejs%>
+
