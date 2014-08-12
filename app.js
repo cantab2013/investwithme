@@ -16,7 +16,7 @@ var express = require("express"),
 // returns an object of arrays storing current value of portfoilo 
 // valued at the latest closing date
 
-var getCurPortfolio = function (ledgers, arr) {
+var getCurPortfolio = function (ledgers, arr, callback) {
   var obj = {ticker: [], quantity: [], price: [], cost: []}, arr = [];
 
   ledgers.forEach(function(ledger) {
@@ -46,19 +46,19 @@ var getCurPortfolio = function (ledgers, arr) {
       fields: ['d1', 'l1']
     }, function (err, data, url, fields) {
   
-   for (var i = 0; i < obj.ticker.length; i+=1) {
+        for (var i = 0; i < obj.ticker.length; i+=1) {
   
-        arr.push(data[obj.ticker[i]].lastTradePriceOnly);
-  };  
-       console.log("WOW", arr);
- 
-      });
+          obj.price.push(data[obj.ticker[i]].lastTradePriceOnly);
+        }  
+        console.log("WOW", arr);
+        callback(obj);
+    });
    
   
 
-  console.log("PORTFOLIO OBJECT created", obj, arr);
+  // console.log("PORTFOLIO OBJECT created", obj, arr);
 
-  return obj;
+  // return obj;
 };
 
   // getClosingPrice (obj.ticker, function(err, results) {
@@ -100,8 +100,8 @@ var getClosingPrice = function (ticker, callback) {
 
   yahooFinance.historical({
     symbol: ticker,
-    from: closeDate,
-    to: closeDate,
+    from: '2014-08-08',
+    to: '2014-08-08',
     period: 'd'
     // period: 'd'  // 'd' (daily), 'w' (weekly), 'm' (monthly)
   }, callback);
@@ -237,17 +237,18 @@ app.get('/summary', function(req,res){
 
     db.ledger.findAll({where: {userId: req.user.id}})
     .success(function(ledgers){
-      obj = getCurPortfolio(ledgers, arr);
-      console.log("INSIDE PASSING OBJECT", obj, arr);
+      getCurPortfolio(ledgers, arr, function (result) {
+        console.log("INSIDE PASSING OBJECT", obj, arr);
 
-      res.render("summary", {
-      //runs a function to see if the user is authenticated - returns true or false
-      isAuthenticated: req.isAuthenticated(),
-      //this is our data from the DB which we get from deserializing
-      user: req.user,
-      data: data,
-      obj: obj,
-      arr: arr
+        res.render("summary", {
+          //runs a function to see if the user is authenticated - returns true or false
+          isAuthenticated: req.isAuthenticated(),
+          //this is our data from the DB which we get from deserializing
+          user: req.user,
+          data: data,
+          obj: result,
+          arr: arr
+        });
       });
     });
   });

@@ -7,76 +7,91 @@
   </ul>
 
 </div>
+
 <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
 
-	
-<!-- remove false to activate-->	
- <%  if (!isAuthenticated && false){ %>
-		<br>
-		<div class="alert alert-warning">
-		<a href="/login">You must be logged in to view this page</a>
-		</div>
+	<% if (!isAuthenticated){ %>
+	 <br>
+	 <div class="alert alert-warning">
+	 <a href="/login">You must be logged in to view this page</a>
+	 </div>
 	<%  } else {%>
 
-  <h1 class="page-header">Account Summary</h1>
+<h1 class="page-header">Account Summary</h1>
 
-<!--   obj = {ticker: [], quantity: [], price: [], cost: []}; -->
+<div class="jumbotron">
+  <ol class="breadcrumb ">
+    <li class="bread">Hi there. Looks like you've been doing some real work! As of today, this is the composition of your current portfolio:</li>
+  </ol>
 
+  <% var cash = 100000; %>
+  <% for (var i = 0; i < obj.ticker.length; i+=1) { %>
+  <% cash -= obj.cost[i]; %>
+  <% } %>
 
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript">
 
-  <% console.log("PASSING SUCCESS", obj); %>
-
-
-   <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Ticker</th>
-          <th>Share Price</th>
-          <th># of Shares</th>
-          <th>Market Value</th>
-          <th>Cost Basis</th>
-          <th>Net Gain/(Losses)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% var cash = 100000; %>
-        <% for (var i = 0; i < obj.ticker.length; i+=1) { %>
-        <% cash -= obj.cost[i]; %>
-        <% } %>
-          <tr><span id="price">You started with $100,000 and have $<%= cash %> remaining balance. Your current portfolio holdings are as follows:</span></tr><br><br>
+    google.load("visualization", "1", {packages:["corechart", 'table']});
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+      var data = google.visualization.arrayToDataTable([
+        ['Ticker', 'Asset'], 
+        ['Cash', <%= Math.round(cash) %>] 
         <% for (var i = 0; i < obj.ticker.length; i+=1) { %>
         <% var marketValue = obj.price[i]*obj.quantity[i]; %>
-        <% var netGain = marketValue - obj.cost[i]; %>
-          <tr>
-            <td><%= obj.ticker[i] %></td>
-            <td><%= obj.price[i] %></td>
-            <td><%= obj.quantity[i] %></td>
-            <td><%= marketValue %></td>
-            <td><%= obj.cost[i] %></td>
-            <td><%= netGain %></td>
-          </tr>
-        <% } %>
-
-      </tbody>
-    </table>
-  </div>
+            , ['<%= obj.ticker[i] %>', <%= Math.round(marketValue) %>]
+         <% console.log(obj.ticker[i], marketValue) %>   
+         <% } %>
+      ]);
 
 
-<!--   <div>
-    <ul>
-      <li>Cumulative Earnings: $<%= data.dataValues.cumEarning %></li>
-      <li>Current Balance: $<%= data.dataValues.curBalance %></li>
-    </ul>
-  </div>
- -->
-<!--   integrate expandable stacked line chart for cash and portfolio mix
-  list all holdings by ticker
- -->
+      var options = {
+        // title: 'Your Current Portfolio',
+        is3D: true,
+      };
 
-<!--   <button onclick="window.location.href='/add'" class="btn btn-primary btn-lg">Add Value</button>
-  <button onclick="window.location.href='/subtract'" class="btn btn-danger btn-lg">Withdraw Value</button>
- --> 
+      var chart = new google.visualization.PieChart(document.getElementById('piechart_3d'));
+      chart.draw(data, options);
+    }
+
+    google.setOnLoadCallback(drawTable);
+    function drawTable() {
+      var data = new google.visualization.DataTable();
+      data.addColumn('string', 'Ticker');
+      data.addColumn('number', 'Price');
+      data.addColumn('number', '# of Shares');
+      data.addColumn('number', 'Market Value');
+      data.addColumn('number', 'Cost Basis');
+      data.addColumn('number', 'Gain/(Loss)');
+
+      data.addRows([
+        <% var marketValue = obj.price[0]*obj.quantity[0]; %>
+        <% var netGain = marketValue - obj.cost[0]; %>
+
+        ['<%= obj.ticker[0] %>', {v: <%= obj.price[0] %>}, {v: <%= obj.quantity[0] %>}, {v: <%= Math.round(marketValue) %>}, {v: <%= obj.cost[0] %>}, {v: <%= Math.round(netGain) %>}] 
+
+        <% for (var i = 1; i < obj.ticker.length; i+=1) { %>
+          <% var marketValue = obj.price[i]*obj.quantity[i]; %>
+          <% var netGain = marketValue - obj.cost[i]; %>
+            , ['<%= obj.ticker[i] %>', {v: <%= obj.price[i] %>}, {v: <%= obj.quantity[i] %>}, {v: <%= Math.round(marketValue) %>}, {v: <%= obj.cost[i] %>}, {v: <%= Math.round(netGain) %>}] 
+         <% } %>
+      ]);
+
+      var table = new google.visualization.Table(document.getElementById('table_div'));
+      table.draw(data, {showRowNumber: true});
+    }          
+  </script>
+
+  <div id="piechart_3d" style="width: 100%; height: 400px;"></div>
+    
+  <ol class="breadcrumb ">
+    <li class="bread">You started with <a class="bignum">$100,000</a> and now have a remaining balance of <a class="bignum">$<%= Math.round(cash) %></a>. Your current portfolio holdings are as follows:</li>
+  </ol>
+  <br><br>
+  <div id='table_div'></div>
+</div>
+ 
 	<%  }%>
 
 <% include partials/footer.ejs%>
